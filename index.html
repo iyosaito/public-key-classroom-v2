@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>公開鍵暗号 体験ツール【改良版】</title><style>
+:root{
+  --navy:#17365d;--blue:#2563eb;--green:#23845f;--red:#c44d45;
+  --ink:#182230;--muted:#64748b;--line:#d8e0ea;--bg:#f4f7fb;--white:#fff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Yu Gothic",Meiryo,system-ui,sans-serif;line-height:1.55
+}
+.wrap{max-width:1120px;margin:auto;padding:0 18px}
+header{background:var(--navy);color:#fff;padding:20px 0}
+h1{margin:0;font-size:clamp(23px,4vw,34px)}
+header p{margin:4px 0 0;opacity:.9;font-size:13px}
+main{padding:22px 0 36px}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 5px 18px rgba(30,50,80,.06);padding:20px
+}
+.section-title{font-size:20px;font-weight:800;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 15px}
+.grid{display:grid;gap:16px}.grid2{grid-template-columns:1fr 1fr}
+label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
+input,textarea,select{
+  width:100%;font:inherit;border:1px solid #c8d2df;border-radius:10px;
+  background:#fff;padding:10px 12px;color:var(--ink)
+}
+textarea{resize:vertical;min-height:105px}
+input:focus,textarea:focus,select:focus,button:focus{
+  outline:3px solid rgba(37,99,235,.18);outline-offset:2px
+}
+button{
+  border:0;border-radius:10px;padding:10px 14px;font:inherit;
+  font-weight:800;cursor:pointer
+}
+button:hover{filter:brightness(.98)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--blue);color:#fff}
+.green{background:var(--green);color:#fff}
+.ghost{background:#edf2f7;color:var(--navy)}
+.danger{background:#fde7e3;color:#9d4038}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.status{min-height:20px;margin-top:8px;font-size:13px;font-weight:700}
+.ok{color:var(--green)}.bad{color:var(--red)}.info{color:var(--blue)}
+.key-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.keybox{padding:12px;border-radius:12px}
+.pub{background:#eef5ff;border:2px solid #b8d0ff}
+.priv{background:#fff2ed;border:2px solid #f0bbb0}
+.key-label{font-size:11px;font-weight:800}
+.key-num{
+  margin-top:2px;font-family:ui-monospace,Consolas,monospace;
+  font-weight:900;font-size:29px;letter-spacing:.12em
+}
+.small{font-size:12px;color:var(--muted)}
+.participants{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.person{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.person .name{font-weight:900;font-size:15px}
+.person .public-key{
+  margin-top:7px;background:#eef5ff;border-radius:8px;padding:6px;
+  font-family:ui-monospace,Consolas,monospace;font-weight:800
+}
+.person .you{font-size:11px;color:var(--green);font-weight:800;margin-top:5px}
+.cipher{
+  background:#13243e;color:#e7eef8;border-radius:10px;padding:11px;
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;
+  word-break:break-all;white-space:pre-wrap;min-height:70px
+}
+.preview{
+  padding:11px;border:1px solid var(--line);border-radius:10px;
+  background:#fbfcfe;white-space:pre-wrap;min-height:70px
+}
+.lockflow{display:grid;grid-template-columns:1fr 70px 1fr;gap:12px;align-items:center}
+.arrow{font-size:34px;text-align:center;color:#9aa8bb}
+.inbox{display:grid;gap:12px}
+.message-item{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fbfcfe}
+.message-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.badge{
+  display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;
+  background:#eef5ff;color:var(--blue);font-size:11px;font-weight:800
+}
+.result{
+  margin-top:11px;padding:12px;border-radius:10px;background:#f1faf5;
+  border:2px solid #bfe4d0;display:none;white-space:pre-wrap
+}
+.roombar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.roombar>div:first-child{flex:1;min-width:240px}
+.room-status{
+  padding:9px 11px;border-radius:10px;background:#f8fafc;
+  border:1px solid var(--line);font-size:12px
+}
+.note{
+  margin-top:12px;padding:9px 11px;border-radius:10px;background:#f8fafc;
+  border:1px solid var(--line);font-size:12px;color:var(--muted)
+}
+.hide{display:none!important}
+@media(max-width:850px){
+  .grid2{grid-template-columns:1fr}
+  .participants{grid-template-columns:repeat(2,1fr)}
+  .lockflow{grid-template-columns:1fr}
+  .arrow{transform:rotate(90deg)}
+}
+@media(max-width:520px){.participants{grid-template-columns:1fr}}
+
+.history{display:grid;gap:10px}.history-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfe}
+.history-header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.mono{font-family:Consolas,ui-monospace,monospace;word-break:break-all}
+.admin-list{display:grid;gap:9px}.admin-person{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:9px 0}
+.notice{background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px;margin:10px 0;color:#78350f}
+</style></head><body>
+<header><div class="wrap"><h1>公開鍵暗号 体験ツール</h1><p>鍵は自分で入力。全員が暗号文の送受信履歴を確認できます。</p></div></header>
+<main class="wrap">
+<section class="card" style="margin-bottom:18px"><h2 class="section-title">あなたの登録</h2>
+<p class="sub">名前を入力して3桁の公開鍵・秘密鍵を発行し、参加してください。秘密鍵はほかの人に教えないでください。</p>
+<div class="grid grid2"><div><label for="display-name">表示名（本名は不要）</label><input id="display-name" maxlength="20" placeholder="例：Aさん" autocomplete="off">
+<div class="row" style="margin-top:12px"><button id="generate-key" class="ghost">3桁の鍵を発行</button></div></div>
+<div class="key-grid" style="margin-top:0"><div class="keybox pub"><div class="key-label">公開鍵（他人に伝えてよい）</div><div id="my-public" class="key-num">---</div></div><div class="keybox priv"><div class="key-label">秘密鍵（自分だけ）</div><div id="my-private" class="key-num">---</div></div></div></div>
+<div class="row" style="margin-top:15px"><button id="register-button" class="primary">この名前・鍵で参加</button><button id="clear-local" class="ghost">自分の参加登録を消す</button><div id="register-status" class="status grow"></div></div></section>
+<section class="card" style="margin-bottom:18px"><div class="roombar"><div><div class="small">共有URL</div><input id="share-url" readonly></div><button id="copy-url" class="primary">URLをコピー</button></div><div id="room-status" class="room-status" style="margin-top:10px">接続準備中…</div></section>
+<section class="card" style="margin-bottom:18px"><h2 class="section-title">参加者</h2><div id="participant-count" class="small">0名</div><div id="participant-grid" class="participants"></div><div id="empty" class="note">登録された参加者がここに表示されます。</div></section>
+<section class="card" style="margin-bottom:18px"><h2 class="section-title">メッセージを送る</h2><div class="grid grid2"><div><label for="recipient">宛先</label><select id="recipient" disabled><option>参加してください</option></select></div><div><label for="send-public">相手の公開鍵を自分で入力（3桁）</label><input id="send-public" inputmode="numeric" maxlength="3" placeholder="公開鍵を確認して手入力" autocomplete="off"></div></div>
+<div style="margin-top:13px"><label for="message">メッセージ</label><textarea id="message" maxlength="180" placeholder="例：明日の授業は楽しみです"></textarea><div id="count" class="small" style="text-align:right">0 / 180</div></div>
+<div class="row" style="margin-top:11px"><button id="encrypt-button" class="primary" disabled>公開鍵で暗号化して送信</button><button id="copy-cipher" class="ghost" disabled>暗号文をコピー</button><div id="send-status" class="status grow"></div></div>
+<div class="lockflow" style="margin-top:15px"><div><div class="small">送信するデータ</div><div id="plain-preview" class="preview" style="margin-top:6px">—</div></div><div class="arrow">→</div><div><div class="small">暗号化されたデータ</div><div id="cipher-output" class="cipher" style="margin-top:6px">—</div></div></div></section>
+<section class="card" style="margin-bottom:18px"><h2 class="section-title">みんなの送受信履歴（暗号文を公開）</h2><p class="sub">管理者・一般参加者の区別なく、誰から誰に送信したかと暗号文が見られます。復号された本文はここには表示しません。</p><div id="history" class="history"><div class="note">まだ送受信履歴がありません。</div></div></section>
+<section class="card" style="margin-bottom:18px"><h2 class="section-title">自分の受信箱</h2><p class="sub">自分宛のメッセージだけ、秘密鍵を手入力して復号できます。鍵の自動入力はありません。</p><div id="inbox" class="inbox"><div class="note">まだメッセージはありません。</div></div></section>
+<section class="card"><h2 class="section-title">先生用・管理者</h2><p class="sub">先生のメールアドレスとパスワードでログインし、参加者を退出・再参加禁止にできます。管理者の履歴閲覧は上と同じです。</p>
+<div id="admin-login-box"><div class="grid grid2"><div><label for="admin-email">管理者メールアドレス</label><input id="admin-email" type="email" autocomplete="username"></div><div><label for="admin-password">管理者パスワード</label><input id="admin-password" type="password" autocomplete="current-password"></div></div><button id="admin-login" class="primary" style="margin-top:10px">管理者でログイン</button></div>
+<div id="admin-tools" class="hide"><div class="row"><span class="badge">管理者ログイン中</span><button id="admin-logout" class="ghost">管理者からログアウト</button></div><div class="notice">「破棄」を押すと、その端末の参加登録を無効化し、同じFirebaseログインIDでは再参加できなくなります。送受信履歴は残ります。</div><h3>参加者の管理</h3><div id="admin-users" class="admin-list"></div><h3>再参加禁止の解除</h3><div id="admin-bans" class="admin-list"></div></div><div id="admin-status" class="status"></div></section>
+<p class="small" style="margin-top:14px">※ 教育用の極小RSAモデルです。3桁の鍵では実用上の秘密保持はできません。実際の秘密情報・個人情報は入力しないでください。</p>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
+import {getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
+import {getDatabase,ref,set,onValue,push,update,remove,get} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js';
+// 新しいFirebaseプロジェクト public-key-classroom-v2 接続設定済み
+const firebaseConfig = {
+  apiKey: 'AIzaSyAhFdsWPUVDF7Xrx5jURNppKg3tDOzwCL8',
+  authDomain: 'public-key-classroom-v2.firebaseapp.com',
+  databaseURL: 'https://public-key-classroom-v2-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'public-key-classroom-v2',
+  storageBucket: 'public-key-classroom-v2.firebasestorage.app',
+  messagingSenderId: '720123525849',
+  appId: '1:720123525849:web:1494ceef4f275171d95cc8'
+};
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getDatabase(app);
+const PROFILE_KEY='rsa-lesson-v2-profile';
+const E=17;
+const KEY_PAIRS=[[299,233],[377,257],[391,145],[403,233],[407,233],[437,233],[451,353],[473,173],[481,305],[493,369],[517,433],[527,113],[533,113],[589,413],[629,305],[649,273],[667,145],[689,257],[697,113],[703,305],[713,233],[731,593],[779,593],[799,433],[851,233],[893,341],[943,673],[989,761]];
+const $=id=>document.getElementById(id);
+let user=null,admin=false,profile=null,participants={},messages={},bans={};
+let stopListeners=[],lastCipher='',generation=0;
+function status(id,msg,bad=false){$(id).textContent=msg;$(id).className='status '+(bad?'bad':'ok')}
+function valid3(x){return /^\d{3}$/.test(String(x))}
+function nameOf(uid,fallback){return participants[uid]?.displayName||fallback||'退出済みの参加者'}
+function myName(){return profile?.name||''}
+function isStudent(){return !!user && !admin && participants[user.uid] && !bans[user.uid] && profile?.uid===user.uid}
+function save(){if(profile)localStorage.setItem(PROFILE_KEY,JSON.stringify(profile))}
+function load(){try{profile=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null')}catch{profile=null}}
+function renderMyKeys(){ $('my-public').textContent=profile?.publicKey||'---';$('my-private').textContent=profile?.privateKey||'---';$('display-name').value=profile?.name||'' }
+function modPow(b,e,n){let v=1;b%=n;while(e>0){if(e%2)v=v*b%n;b=b*b%n;e=Math.floor(e/2)}return v}
+function encrypt(text,n){let c=Array.from(new TextEncoder().encode(text),m=>modPow(m,E,n));return JSON.stringify({version:1,n,e:E,c})}
+function decrypt(serialized,d){const obj=JSON.parse(serialized);if(obj.version!==1||obj.e!==E||!Number.isInteger(obj.n)||obj.n<257||obj.n>999||!Array.isArray(obj.c)||obj.c.length>1000)throw Error('形式が不正');let bytes=obj.c.map(c=>{if(!Number.isInteger(c)||c<0||c>=obj.n)throw Error('暗号文が不正');const m=modPow(c,d,obj.n);if(m>255||modPow(m,E,obj.n)!==c)throw Error('秘密鍵が違います');return m});return new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(bytes))}
+function make(tag,text,cls){let x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(cls)x.className=cls;return x}
+function generate(){if(admin){status('register-status','管理者モードでは参加登録できません',true);return}const name=$('display-name').value.trim();if(!name){status('register-status','表示名を入力してください',true);return}const arr=new Uint32Array(1);crypto.getRandomValues(arr);const p=KEY_PAIRS[arr[0]%KEY_PAIRS.length];profile={uid:user?.uid||null,name,publicKey:String(p[0]),privateKey:String(p[1])};save();renderMyKeys();status('register-status','鍵を発行しました。公開鍵・秘密鍵を覚えてください')}
+async function register(){if(!user||admin){status('register-status','生徒用ログイン状態で操作してください',true);return}if(bans[user.uid]){status('register-status','管理者によって参加登録が停止されています',true);return}const name=$('display-name').value.trim();if(!name||name.length>20){status('register-status','表示名を1～20文字で入力してください',true);return}if(!profile||!valid3(profile.publicKey)||!valid3(profile.privateKey)||profile.uid!==user.uid){status('register-status','先に鍵を発行してください',true);return}profile.name=name;profile.wasRegistered=true;save();try{await set(ref(db,'participants/'+user.uid),{displayName:name,publicKey:profile.publicKey,updatedAt:Date.now()});status('register-status','参加しました')}catch(err){status('register-status','参加登録できません: '+err.code,true)}}
+async function clearMine(){if(admin){status('register-status','管理者モードです',true);return}if(!confirm('自分の参加登録を消しますか？'))return;try{if(user)await remove(ref(db,'participants/'+user.uid));localStorage.removeItem(PROFILE_KEY);profile=null;renderMyKeys();status('register-status','登録を削除しました')}catch(err){status('register-status','削除失敗: '+err.code,true)}}
+function renderParticipants(){const list=Object.entries(participants).sort((a,b)=>a[1].displayName.localeCompare(b[1].displayName,'ja'));$('participant-count').textContent=list.length+'名';$('empty').classList.toggle('hide',list.length>0);$('participant-grid').replaceChildren();for(const [uid,p] of list){let box=make('div',undefined,'person');box.append(make('div',p.displayName,'name'),make('div','公開鍵：'+p.publicKey,'public-key'));if(user?.uid===uid)box.append(make('div','あなた','you'));$('participant-grid').append(box)}renderRecipients();renderAdmin()}
+function renderRecipients(){const sel=$('recipient'),prev=sel.value;sel.replaceChildren();if(!isStudent()){sel.append(new Option('参加すると送信できます',''));sel.disabled=true;$('encrypt-button').disabled=true;return}const others=Object.entries(participants).filter(([uid])=>uid!==user.uid);if(!others.length){sel.append(new Option('他の参加者を待っています',''));sel.disabled=true;$('encrypt-button').disabled=true;return}for(const [uid,p] of others)sel.append(new Option(p.displayName,uid));sel.disabled=false;sel.value=others.some(([uid])=>uid===prev)?prev:others[0][0];$('encrypt-button').disabled=false}
+async function send(){if(!isStudent()){status('send-status','参加登録してから送信してください',true);return}const uid=$('recipient').value,r=participants[uid],text=$('message').value.trim(),key=$('send-public').value.trim();if(!r){status('send-status','宛先を選択してください',true);return}if(!valid3(key)||key!==r.publicKey){status('send-status','公開鍵が違います。参加者一覧を見て自分で入力してください',true);return}if(!text){status('send-status','メッセージを入力してください',true);return}const ciphertext=encrypt(text,Number(key));if(ciphertext.length>9000){status('send-status','メッセージが長すぎます',true);return}try{await set(push(ref(db,'messages')),{fromUid:user.uid,fromName:myName(),toUid:uid,toName:r.displayName,ciphertext,sentAt:Date.now()});lastCipher=ciphertext;$('plain-preview').textContent=text;$('cipher-output').textContent=ciphertext;$('copy-cipher').disabled=false;$('message').value='';$('count').textContent='0 / 180';$('send-public').value='';status('send-status','暗号化して送信しました')}catch(err){status('send-status','送信失敗: '+err.code,true)}}
+function renderMessages(){const sorted=Object.entries(messages).sort((a,b)=>(b[1].sentAt||0)-(a[1].sentAt||0));const history=$('history'),inbox=$('inbox');history.replaceChildren();inbox.replaceChildren();if(!sorted.length)history.append(make('div','まだ送受信履歴がありません','note'));for(const [id,m] of sorted){const wrap=make('div',undefined,'history-item'),head=make('div',undefined,'history-header');head.append(make('strong',(m.fromName||'送信者')+' → '+(m.toName||'宛先')),make('span',new Date(m.sentAt).toLocaleString('ja-JP'),'small'));wrap.append(head,make('div',m.ciphertext,'cipher'));history.append(wrap);if(user&&m.toUid===user.uid&&!admin&&isStudent()){const item=make('div',undefined,'message-item');item.append(make('strong',(m.fromName||'送信者')+' から受信'),make('div',m.ciphertext,'cipher'));const row=make('div',undefined,'row');row.style.marginTop='10px';const field=make('input');field.type='text';field.inputMode='numeric';field.maxLength=3;field.placeholder='秘密鍵3桁を入力';field.autocomplete='off';field.style.maxWidth='180px';const button=make('button','秘密鍵で復号','green');const result=make('div',undefined,'result');button.onclick=()=>{if(!valid3(field.value)){alert('秘密鍵3桁を入力してください');return}try{const plain=decrypt(m.ciphertext,Number(field.value));result.textContent='復号結果：'+plain;result.style.display='block'}catch{result.textContent='秘密鍵が違うか、暗号文が破損しています';result.style.display='block'}};row.append(field,button);item.append(row,result);inbox.append(item)}}if(!inbox.childElementCount)inbox.append(make('div','自分宛のメッセージはありません','note'))}
+function renderAdmin(){const root=$('admin-tools');root.classList.toggle('hide',!admin);$('admin-login-box').classList.toggle('hide',admin);if(!admin)return;const el=$('admin-users'),bl=$('admin-bans');el.replaceChildren();bl.replaceChildren();for(const [uid,p] of Object.entries(participants)){const row=make('div',undefined,'admin-person');const detail=make('div');detail.append(make('strong',p.displayName),make('div','UID: '+uid,'small'));const btn=make('button','参加者を破棄','danger');btn.onclick=async()=>{if(!confirm(p.displayName+' を破棄し、再参加を禁止しますか？'))return;try{await update(ref(db),{['bans/'+uid]:true,['participants/'+uid]:null});status('admin-status',p.displayName+' を破棄しました')}catch(err){status('admin-status','操作失敗: '+err.code,true)}};row.append(detail,btn);el.append(row)}if(!el.childElementCount)el.append(make('div','参加者はいません','note'));for(const [uid,v] of Object.entries(bans)){if(v!==true)continue;const row=make('div',undefined,'admin-person'),btn=make('button','禁止を解除','ghost');btn.onclick=async()=>{try{await remove(ref(db,'bans/'+uid));status('admin-status','再参加禁止を解除しました')}catch(err){status('admin-status','解除失敗: '+err.code,true)}};row.append(make('span','UID: '+uid,'small'),btn);bl.append(row)}if(!bl.childElementCount)bl.append(make('div','再参加禁止のユーザーはいません','note'))}
+async function loginAdmin(){const email=$('admin-email').value.trim(),pass=$('admin-password').value;if(!email||!pass){status('admin-status','メールとパスワードを入力してください',true);return}try{await signInWithEmailAndPassword(auth,email,pass);$('admin-password').value='';status('admin-status','ログイン状態を確認しています')}catch(err){status('admin-status','ログイン失敗: '+err.code,true)}}
+async function logoutAdmin(){try{await signOut(auth);await signInAnonymously(auth)}catch(err){status('admin-status','ログアウト失敗: '+err.code,true)}}
+function attach(userNow){for(const stop of stopListeners)stop();stopListeners=[];participants={};messages={};bans={};renderParticipants();renderMessages();if(!userNow)return;const onErr=e=>{$('room-status').textContent='読み込み失敗: '+e.code};stopListeners.push(onValue(ref(db,'participants'),s=>{participants=s.val()||{};if(!admin&&user&&bans[user.uid]||(!admin&&profile?.uid===user?.uid&&!participants[user.uid]&&profile?.wasRegistered)){status('register-status','登録が無効です。管理者に確認してください',true)}renderParticipants();renderMessages()},onErr));stopListeners.push(onValue(ref(db,'messages'),s=>{messages=s.val()||{};renderMessages()},onErr));if(admin){stopListeners.push(onValue(ref(db,'bans'),s=>{bans=s.val()||{};renderAdmin()},onErr))}else{stopListeners.push(onValue(ref(db,'bans/'+userNow.uid),s=>{bans={...bans,[userNow.uid]:s.val()===true};if(bans[userNow.uid])status('register-status','管理者によって参加が停止されました',true);renderRecipients();renderMessages()},onErr))}}
+$('share-url').value=location.href;
+$('generate-key').onclick=generate;$('register-button').onclick=register;$('clear-local').onclick=clearMine;
+$('recipient').onchange=()=>{$('send-public').value='';status('send-status','宛先の公開鍵を参加者一覧から確認し、入力してください')};
+$('encrypt-button').onclick=send;$('message').oninput=()=>{$('count').textContent=$('message').value.length+' / 180'};
+$('copy-url').onclick=()=>navigator.clipboard.writeText(location.href).then(()=>status('send-status','URLをコピーしました')).catch(()=>alert('コピーできませんでした'));
+$('copy-cipher').onclick=()=>navigator.clipboard.writeText(lastCipher).then(()=>status('send-status','暗号文をコピーしました')).catch(()=>alert('コピーできませんでした'));
+$('admin-login').onclick=loginAdmin;$('admin-logout').onclick=logoutAdmin;
+load();renderMyKeys();
+onAuthStateChanged(auth,async current=>{user=current;if(!current){admin=false;attach(null);return}try{const s=await get(ref(db,'admins/'+current.uid));if(auth.currentUser?.uid!==current.uid)return;admin=s.val()===true}catch{admin=false}if(admin){$('room-status').textContent='管理者として接続中'}else{$('room-status').textContent='参加者用として接続中';if(profile?.uid!==current.uid){profile=null;localStorage.removeItem(PROFILE_KEY)}renderMyKeys()}attach(current);renderAdmin()});
+if(!auth.currentUser){signInAnonymously(auth).catch(e=>{$('room-status').textContent='認証失敗：Firebase Authenticationの匿名認証を有効にしてください ('+e.code+')'})}
+</script></body></html>
